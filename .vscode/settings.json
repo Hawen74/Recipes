@@ -9,5 +9,6 @@
             "connectString": "postgresql://postgres:3O74fON0RDWqPIoP@db.lksiudyoxbldjqqwycyi.supabase.co:5432/postgres",
             "connectionTimeout": 30
         }
-    ]
+    ],
+    "postman.settings.dotenv-detection-notification-visibility": false
 }
