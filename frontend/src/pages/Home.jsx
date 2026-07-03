@@ -1,22 +1,7 @@
-import { useState, useEffect } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom"
 
-const Home = () => {
-  return(
-    <div className="home-page">
-      <div className="home-card">
-        <p className="home-eyebrow">Cook • Explore • Enjoy</p>
-        <h1>Welcome to the World of Recipes</h1>
-        <p className="home-text">
-          Discover delicious dishes, save your favorites, and bring new flavors
-          to your kitchen every day.
-        </p>
-        <div className="home-actions">
-          <button className="primary-btn">Explore Recipes</button>
-          <button className="secondary-btn">Get Inspired</button>
-        </div>
-      </div>
-
-      <style>{`
+const styles = `
         .home-page {
           min-height: 100vh;
           display: flex;
@@ -96,7 +81,27 @@ const Home = () => {
           color: #1f2937;
           border: 1px solid #e5e7eb;
         }
-      `}</style>
+      `;
+
+const Home = () => {
+  const navigate = useNavigate()
+
+  return(
+    <div className="home-page">
+      <div className="home-card">
+        <p className="home-eyebrow">Cook • Explore • Enjoy</p>
+        <h1>Welcome to the World of Recipes</h1>
+        <p className="home-text">
+          Discover delicious dishes, save your favorites, and bring new flavors
+          to your kitchen every day.
+        </p>
+        <div className="home-actions">
+          <button className="primary-btn" onClick={() => navigate("/recipes")}>Explore Recipes</button>
+          <button className="secondary-btn">Get Inspired</button>
+        </div>
+      </div>
+
+      <style>{styles}</style>
     </div>
   )
 }
