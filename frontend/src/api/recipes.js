@@ -11,8 +11,8 @@ export async function getAllRecipes() {
 }
 
 // GET /recipes/:id
-export async function getRecipeById(id) {
-    const res = await api.get(`/recipes/${id}`)
+export async function getRecipeById(name) {
+    const res = await api.get(`/recipes/${name}`)
     return res.data
 }
 

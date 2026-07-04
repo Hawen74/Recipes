@@ -1,24 +1,19 @@
-import React from 'react'
-
-const recipes = [
-  {
-    name: 'Creamy Garlic Pasta',
-    ingredients: 'Pasta, garlic, butter, cream, parmesan',
-    steps: 'Cook pasta, prepare sauce, toss together, serve warm.',
-  },
-  {
-    name: 'Classic Chicken Salad',
-    ingredients: 'Chicken, lettuce, tomatoes, cucumber, dressing',
-    steps: 'Chop ingredients, mix, add dressing, and enjoy fresh.',
-  },
-  {
-    name: 'Berry Yogurt Parfait',
-    ingredients: 'Yogurt, berries, granola, honey',
-    steps: 'Layer yogurt, berries, and granola, then drizzle honey.',
-  },
-]
+import React, { useEffect, useState } from 'react'
+import { getAllRecipes } from '../api/recipes'
+import { Link } from 'react-router-dom'
 
 const Recipes = () => {
+  const [recipes, setRecipes] = useState([])
+
+  useEffect(() => {
+    const loadRecipes = async () => {
+      const data = await getAllRecipes();
+      setRecipes(data)
+    }
+      
+    loadRecipes();
+  }, [])
+
   return (
     <div style={styles.page}>
       <div style={styles.hero}>
@@ -30,20 +25,22 @@ const Recipes = () => {
         </p>
       </div>
 
-      <div style={styles.grid}>
+      <div style={styles.grid} >
         {recipes.map((recipe, index) => (
           <div key={index} style={styles.card}>
-            <span style={styles.badge}>Recipe {index + 1}</span>
-            <h2 style={styles.cardTitle}>{recipe.name}</h2>
+            <Link to={`/recipes/${recipe.name}`}>
+              <span style={styles.badge}>Recipe {index + 1}</span>
+              <h2 style={styles.cardTitle}>{recipe.name}</h2>
+            </Link>
 
             <div style={styles.section}>
               <h3 style={styles.sectionTitle}>Ingredients</h3>
-              <p style={styles.text}>{recipe.ingredients}</p>
+              <p style={styles.text}>{recipe.ingredients.join(", ")}</p>
             </div>
 
             <div style={styles.section}>
               <h3 style={styles.sectionTitle}>Steps</h3>
-              <p style={styles.text}>{recipe.steps}</p>
+              <p style={styles.text}>{recipe.steps.join(", ")}</p>
             </div>
           </div>
         ))}
