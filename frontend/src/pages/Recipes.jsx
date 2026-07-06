@@ -4,6 +4,27 @@ import { Link } from 'react-router-dom'
 
 const Recipes = () => {
   const [recipes, setRecipes] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const query = searchTerm.trim().toLowerCase()
+
+  const filteredRecipes = recipes.filter((recipe) => {
+    if (!query) return true
+
+    const name = recipe.name?.toLowerCase() ?? ''
+    const ingredients = Array.isArray(recipe.ingredients)
+      ? recipe.ingredients.join(' ').toLowerCase()
+      : ''
+    const steps = Array.isArray(recipe.steps)
+      ? recipe.steps.join(' ').toLowerCase()
+      : ''
+
+    return (
+      name.includes(query) ||
+      ingredients.includes(query) ||
+      steps.includes(query)
+    )
+  })
 
   useEffect(() => {
     const loadRecipes = async () => {
@@ -23,10 +44,17 @@ const Recipes = () => {
           A clean card layout for displaying recipe names, ingredients, and
           steps.
         </p>
+        <input
+          type="text"
+          placeholder="Search your recipes..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={styles.searchInput}
+        />
       </div>
 
       <div style={styles.grid} >
-        {recipes.map((recipe, index) => (
+        {filteredRecipes.length > 0 ? filteredRecipes.map((recipe, index) => (
           <div key={index} style={styles.card}>
             <Link to={`/recipes/${recipe.name}`}>
               <span style={styles.badge}>Recipe {index + 1}</span>
@@ -43,7 +71,11 @@ const Recipes = () => {
               <p style={styles.text}>{recipe.steps.join(", ")}</p>
             </div>
           </div>
-        ))}
+        )) : (
+          <p style={{ textAlign: 'center', color: '#4b5563', gridColumn: '1 / -1' }}>
+            No recipes found for “{searchTerm}”.
+          </p>
+        )}
       </div>
     </div>
   )
@@ -82,6 +114,19 @@ const styles = {
     maxWidth: '720px',
     fontSize: '1.05rem',
     color: '#4b5563',
+  },
+  searchInput: {
+    marginTop: '24px',
+    width: 'min(100%, 420px)',
+    padding: '14px 16px',
+    borderRadius: '12px',
+    border: '1px solid #e5e7eb',
+    background: 'lightyellow',
+    color: 'gray',
+    outline: 'none',
+    fontSize: '1rem',
+    boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)',
+    outline: 'none'
   },
   grid: {
     maxWidth: '1100px',

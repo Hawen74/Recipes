@@ -23,16 +23,6 @@ const buttonStyle = {
   boxShadow: '0 6px 14px rgba(37, 99, 235, 0.25)'
 }
 
-const inputStyle = {
-  marginLeft: 'auto',
-  padding: '8px 12px',
-  borderRadius: '8px',
-  border: '1px solid #e5e7eb',
-  outline: 'none',
-  width: '240px',
-  boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)'
-}
-
 const Main = () => {
   const location = useLocation()
 
@@ -42,7 +32,6 @@ const Main = () => {
         <header style={headerStyle}>
           <Link to="/" style={buttonStyle}>Home</Link>
           <Link to="/recipes" style={buttonStyle}>Recipes</Link>
-          <input type='text' placeholder='Search your recipes...' style={inputStyle} />
         </header>
       )}
       <Routes>
