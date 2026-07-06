@@ -85,7 +85,7 @@ const styles = `
 
 const Home = () => {
   const navigate = useNavigate()
-
+  
   return(
     <div className="home-page">
       <div className="home-card">
