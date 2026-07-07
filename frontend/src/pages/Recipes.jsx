@@ -6,55 +6,26 @@ const Recipes = () => {
   const [recipes, setRecipes] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
 
-  const query = searchTerm.trim().toLowerCase()
+  const filteredRecipes = recipes.filter((r) =>
+    (r.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
-  const highlightText = (text) => {
-    if (!query) return text
+  const highlightText = (text, term) => {
+    if (!term) return text
 
-    const lowerText = text.toLowerCase()
-    const parts = []
-    let startIndex = 0
+    // Escape regex special characters in the search term
+    const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const regex = new RegExp(`(${escaped})`, 'gi')
+    const parts = text.split(regex)
 
-    while (startIndex < text.length) {
-      const matchIndex = lowerText.indexOf(query, startIndex)
-
-      if (matchIndex === -1) {
-        parts.push(text.slice(startIndex))
-        break
-      }
-
-      if (matchIndex > startIndex) {
-        parts.push(text.slice(startIndex, matchIndex))
-      }
-
-      parts.push(
-        <mark key={`${matchIndex}-${startIndex}`} style={styles.highlight}>
-          {text.slice(matchIndex, matchIndex + query.length)}
-        </mark>
+    return parts.map((part, i) =>
+      part.toLowerCase() === term.toLowerCase() ? (
+        <span key={i} style={styles.highlight}>{part}</span>
+      ) : (
+        <React.Fragment key={i}>{part}</React.Fragment>
       )
-      startIndex = matchIndex + query.length
-    }
-
-    return parts
-  }
-
-  const filteredRecipes = recipes.filter((recipe) => {
-    if (!query) return true
-
-    const name = recipe.name?.toLowerCase() ?? ''
-    const ingredients = Array.isArray(recipe.ingredients)
-      ? recipe.ingredients.join(' ').toLowerCase()
-      : ''
-    const steps = Array.isArray(recipe.steps)
-      ? recipe.steps.join(' ').toLowerCase()
-      : ''
-
-    return (
-      name.includes(query) ||
-      ingredients.includes(query) ||
-      steps.includes(query)
     )
-  })
+  }
 
   useEffect(() => {
     const loadRecipes = async () => {
@@ -86,13 +57,13 @@ const Recipes = () => {
       <div style={styles.grid} >
         {recipes.length === 0 ? (
           <p style={{ textAlign: 'center', color: '#4b5563', gridColumn: '1 / -1' }}>
-            Recipes are empty.
+            Recipes are loading...
           </p>
         ) : filteredRecipes.length > 0 ? filteredRecipes.map((recipe, index) => (
           <div key={index} style={styles.card}>
             <Link to={`/recipes/${recipe.name}`}>
               <span style={styles.badge}>Recipe {index + 1}</span>
-              <h2 style={styles.cardTitle}>{highlightText(recipe.name)}</h2>
+              <h2 style={styles.cardTitle}>{highlightText(recipe.name, searchTerm)}</h2>
             </Link>
 
             <div style={styles.section}>
