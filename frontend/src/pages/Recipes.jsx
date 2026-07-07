@@ -8,6 +8,36 @@ const Recipes = () => {
 
   const query = searchTerm.trim().toLowerCase()
 
+  const highlightText = (text) => {
+    if (!query) return text
+
+    const lowerText = text.toLowerCase()
+    const parts = []
+    let startIndex = 0
+
+    while (startIndex < text.length) {
+      const matchIndex = lowerText.indexOf(query, startIndex)
+
+      if (matchIndex === -1) {
+        parts.push(text.slice(startIndex))
+        break
+      }
+
+      if (matchIndex > startIndex) {
+        parts.push(text.slice(startIndex, matchIndex))
+      }
+
+      parts.push(
+        <mark key={`${matchIndex}-${startIndex}`} style={styles.highlight}>
+          {text.slice(matchIndex, matchIndex + query.length)}
+        </mark>
+      )
+      startIndex = matchIndex + query.length
+    }
+
+    return parts
+  }
+
   const filteredRecipes = recipes.filter((recipe) => {
     if (!query) return true
 
@@ -58,17 +88,17 @@ const Recipes = () => {
           <div key={index} style={styles.card}>
             <Link to={`/recipes/${recipe.name}`}>
               <span style={styles.badge}>Recipe {index + 1}</span>
-              <h2 style={styles.cardTitle}>{recipe.name}</h2>
+              <h2 style={styles.cardTitle}>{highlightText(recipe.name)}</h2>
             </Link>
 
             <div style={styles.section}>
               <h3 style={styles.sectionTitle}>Ingredients</h3>
-              <p style={styles.text}>{recipe.ingredients.join(", ")}</p>
+              <p style={styles.text}>{recipe.ingredients.join(', ')}</p>
             </div>
 
             <div style={styles.section}>
               <h3 style={styles.sectionTitle}>Steps</h3>
-              <p style={styles.text}>{recipe.steps.join(", ")}</p>
+              <p style={styles.text}>{recipe.steps.join(', ')}</p>
             </div>
           </div>
         )) : (
@@ -127,6 +157,12 @@ const styles = {
     fontSize: '1rem',
     boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)',
     outline: 'none'
+  },
+  highlight: {
+    background: '#fde68a',
+    color: '#111827',
+    padding: '0 2px',
+    borderRadius: '4px',
   },
   grid: {
     maxWidth: '1100px',
