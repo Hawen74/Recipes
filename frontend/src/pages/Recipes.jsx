@@ -84,7 +84,11 @@ const Recipes = () => {
       </div>
 
       <div style={styles.grid} >
-        {filteredRecipes.length > 0 ? filteredRecipes.map((recipe, index) => (
+        {recipes.length === 0 ? (
+          <p style={{ textAlign: 'center', color: '#4b5563', gridColumn: '1 / -1' }}>
+            Recipes are empty.
+          </p>
+        ) : filteredRecipes.length > 0 ? filteredRecipes.map((recipe, index) => (
           <div key={index} style={styles.card}>
             <Link to={`/recipes/${recipe.name}`}>
               <span style={styles.badge}>Recipe {index + 1}</span>
@@ -104,7 +108,7 @@ const Recipes = () => {
         )) : (
           <p style={{ textAlign: 'center', color: '#4b5563', gridColumn: '1 / -1' }}>
             No recipes found for “{searchTerm}”.
-          </p>
+          </p> 
         )}
       </div>
     </div>
