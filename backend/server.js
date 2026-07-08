@@ -47,7 +47,7 @@ app.get('/recipes/:name', async (req, res) => {
 
 app.post('/recipes', async (req, res) => {
     try {
-        const { name, ingredients, steps } = req.body
+        const { name, ingredients, steps, prep_time } = req.body
 
         if (!name || typeof name !== 'string' || !name.trim()) {
             return res.status(400).json({ error: 'Name is required' })
@@ -66,13 +66,14 @@ app.post('/recipes', async (req, res) => {
         }
 
         const recipe = await pool.query(
-            `INSERT INTO recipes (name, ingredients, steps)
-             VALUES ($1, $2, $3)
+            `INSERT INTO recipes (name, ingredients, steps, prep_time)
+             VALUES ($1, $2, $3, $4)
              RETURNING *`,
             [
                 name.trim(),
                 ingredients || [],
-                steps || []
+                steps || [],
+                prep_time || null 
             ]
         )
 
@@ -91,7 +92,7 @@ app.put('/recipes/:name', async (req, res) => {
             return res.status(400).json({ error: 'Invalid recipe name' })
         }
 
-        const { name, ingredients, steps } = req.body
+        const { name, ingredients, steps, prep_time } = req.body
 
         if (!name || typeof name !== 'string' || !name.trim()) {
             return res.status(400).json({ error: 'Name is required' })
@@ -102,13 +103,15 @@ app.put('/recipes/:name', async (req, res) => {
             SET name = $1,
                 ingredients = $2,
                 steps = $3,
+                prep_time = $4,
                 updated_at = CURRENT_TIMESTAMP
-            WHERE LOWER(name) = LOWER($4)
+            WHERE LOWER(name) = LOWER($5)
             RETURNING *`, 
             [
                 name.trim(),
                 ingredients,
                 steps,
+                prep_time || null,
                 currentName
             ]
         )

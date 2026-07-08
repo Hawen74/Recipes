@@ -1,8 +1,11 @@
 CREATE TABLE IF NOT EXISTS recipes (
     id           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name        VARCHAR(100) NOT NULL,
+    name         VARCHAR(100) NOT NULL,
     ingredients  TEXT[] NOT NULL DEFAULT '{}',
     steps        TEXT[] NOT NULL DEFAULT '{}',
+    prep_time    INTEGER,
     created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE recipes ADD COLUMN prep_time INTEGER;

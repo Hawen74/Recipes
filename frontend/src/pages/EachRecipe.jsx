@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getRecipeById } from '../api/recipes'
+import '../components/Recipes.css'
 
 const styles = {
   page: {
@@ -12,6 +13,7 @@ const styles = {
     fontFamily: 'Arial, Helvetica, sans-serif',
   },
   card: {
+    position: 'relative',
     maxWidth: '920px',
     margin: '0 auto',
     padding: '32px',
@@ -31,6 +33,10 @@ const styles = {
   layout: {
     display: 'grid',
     gap: '24px',
+  },
+  prepTimeRow: {
+    display: 'flex',
+    justifyContent: 'flex-end',
   },
   section: {
     padding: '20px 20px 0',
@@ -83,6 +89,13 @@ const EachRecipe = () => {
   return (
     <div style={styles.page}>
       <div style={styles.card}>
+        <div style={styles.prepTimeRow}>
+          <div className="recipes-prepTimePill">
+            <span className="recipes-prepTimeLabel">Prep Time</span>
+            <span className="recipes-prepTimeValue">{recipe.prep_time || 'N/A'}</span>
+          </div>
+        </div>
+
         <h1 style={styles.title}>{recipe.name}</h1>
 
         <div style={styles.layout}>
