@@ -10,7 +10,7 @@ export async function getAllRecipes() {
     return res.data
 }
 
-// GET /recipes/:id
+// GET /recipes/:name
 export async function getRecipeById(name) {
     const res = await api.get(`/recipes/${name}`)
     return res.data
@@ -22,14 +22,14 @@ export async function createRecipe(recipe) {
     return res.data
 }
 
-// PUT /recipes/:id
-export async function updateRecipe(id, recipe) {
-    const res = await api.put(`/recipes/${id}`, recipe)
+// PUT /recipes/:name
+export async function updateRecipe(name, recipe) {
+    const res = await api.put(`/recipes/${name}`, recipe)
     return res.data
 }
 
-// DELETE /recipes/:id
-export async function deleteRecipe(id) {
-    const res = await api.delete(`/recipes/${id}`)
+// DELETE /recipes/:name
+export async function deleteRecipe(name) {
+    const res = await api.delete(`/recipes/${name}`)
     return res.data
 }

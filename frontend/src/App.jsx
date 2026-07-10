@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-do
 import Home from './pages/Home'
 import Recipes from './pages/Recipes'
 import EachRecipe from './pages/EachRecipe'
+import GenerateRecipe from './pages/GenerateRecipe'
 
 const headerStyle = {
   display: 'flex',
@@ -28,7 +29,7 @@ const Main = () => {
 
   return (
     <>
-      {location.pathname !== '/' && (
+      {/* {location.pathname !== '/' && (
         <header style={headerStyle}>
           <Link to="/" style={buttonStyle}>Home</Link>
           <Link to="/recipes" style={buttonStyle}>Recipes</Link>
@@ -38,7 +39,8 @@ const Main = () => {
         <Route path="/" element={<Home />} />
         <Route path="/recipes" element={<Recipes />} />
         <Route path="/recipes/:id/*" element={<EachRecipe />} />
-      </Routes>
+      </Routes> */}
+      <GenerateRecipe />
     </>
   )
 }
