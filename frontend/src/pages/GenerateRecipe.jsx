@@ -1,12 +1,17 @@
-  import React, { useEffect, useMemo, useState } from 'react'
+  import React, { useEffect, useMemo, useRef, useState } from 'react'
 import '../components/GenerateRecipe.css'
-import { createRecipe, getAllRecipes, updateRecipe } from '../api/recipes'
+  import { createRecipe, deleteRecipe, getAllRecipes, updateRecipe } from '../api/recipes'
+
+  const DELETE_PASSWORD = 'norecipe'
 
 const GenerateRecipe = () => {
+  const successMessageRef = useRef(null)
   const [mode, setMode] = useState('create')
   const [recipes, setRecipes] = useState([])
   const [loadingRecipes, setLoadingRecipes] = useState(false)
   const [recipeError, setRecipeError] = useState('')
+  const [successMessage, setSuccessMessage] = useState('')
+  const [deletePassword, setDeletePassword] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRecipeName, setSelectedRecipeName] = useState('')
   const [formData, setFormData] = useState({
@@ -21,6 +26,13 @@ const GenerateRecipe = () => {
     ingredients: '',
     steps: '',
     prepTime: ''
+  }
+
+  const showSuccessMessage = (message) => {
+    setSuccessMessage(message)
+    requestAnimationFrame(() => {
+      successMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
   }
 
   const loadRecipes = async () => {
@@ -53,6 +65,7 @@ const GenerateRecipe = () => {
 
       await loadRecipes()
       setFormData(initialFormData)
+      showSuccessMessage('Recipe created successfully.')
     } catch (err) {
       console.error(err)
       setRecipeError('Could not create the recipe.')
@@ -71,9 +84,39 @@ const GenerateRecipe = () => {
 
       await loadRecipes()
       setFormData(initialFormData)
+      showSuccessMessage('Recipe updated successfully.')
     } catch (err) {
       console.error(err)
       setRecipeError('Could not update the recipe.')
+    }
+  }
+
+  const handleDelete = async () => {
+    setRecipeError('')
+    setSuccessMessage('')
+
+    if (!selectedRecipeName) {
+      setRecipeError('Select a recipe before deleting it.')
+      return
+    }
+
+    if (deletePassword !== DELETE_PASSWORD) {
+      setRecipeError('Incorrect password. Recipe was not deleted.')
+      return
+    }
+
+    try {
+      await deleteRecipe(selectedRecipeName)
+      await loadRecipes()
+      setMode('create')
+      setSelectedRecipeName('')
+      setSearchTerm('')
+      setDeletePassword('')
+      setFormData(initialFormData)
+      showSuccessMessage('Recipe deleted successfully.')
+    } catch (err) {
+      console.error(err)
+      setRecipeError('Could not delete the recipe.')
     }
   }
 
@@ -111,6 +154,9 @@ const GenerateRecipe = () => {
 
   const handleModeChange = (nextMode) => {
     setMode(nextMode)
+    setSuccessMessage('')
+    setRecipeError('')
+    setDeletePassword('')
 
     if (nextMode === 'create') {
       setSelectedRecipeName('')
@@ -121,6 +167,8 @@ const GenerateRecipe = () => {
 
   const handleFieldChange = (event) => {
     const { name, value } = event.target
+    setSuccessMessage('')
+    setRecipeError('')
     setFormData((current) => ({
       ...current,
       [name]: value
@@ -130,6 +178,8 @@ const GenerateRecipe = () => {
   const handleRecipeSelect = (recipeName) => {
     setSelectedRecipeName(recipeName)
     setMode('update')
+    setRecipeError('')
+    setSuccessMessage('')
   }
 
   const handleSubmit = (event) => {
@@ -139,6 +189,15 @@ const GenerateRecipe = () => {
     } else {
       handleUpdate()
     }
+  }
+
+  const handleActionClick = () => {
+    if (mode === 'create') {
+      handleCreate()
+      return
+    }
+
+    handleUpdate()
   }
 
   return (
@@ -152,6 +211,12 @@ const GenerateRecipe = () => {
       </section>
 
       <section className="generate-card">
+        {successMessage && (
+          <p ref={successMessageRef} className="generate-helperText is-success" role="status" aria-live="polite">
+            {successMessage}
+          </p>
+        )}
+
         <div className="generate-toggle" role="tablist" aria-label="Recipe form mode">
           <button
             type="button"
@@ -178,12 +243,14 @@ const GenerateRecipe = () => {
                 placeholder="Find recipes"
                 type="search"
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value)
+                  setRecipeError('')
+                }}
               />
 
               <div className="generate-results" aria-live="polite">
                 {loadingRecipes && <p className="generate-helperText">Loading recipes from the database...</p>}
-                {!loadingRecipes && recipeError && <p className="generate-helperText is-error">{recipeError}</p>}
                 {!loadingRecipes && !recipeError && filteredRecipes.length === 0 && (
                   <p className="generate-helperText">No recipes matched your search.</p>
                 )}
@@ -259,10 +326,41 @@ const GenerateRecipe = () => {
           </label>
 
           <div className="generate-actions">
-            <button type="submit" className="generate-submitButton">
+            <button type="button" className="generate-submitButton" onClick={handleActionClick}>
               {mode === 'create' ? 'Create recipe' : 'Save changes'}
             </button>
           </div>
+
+          {mode === 'update' && (
+            <div className="generate-deleteCard">
+              <span className="generate-deleteTitle">Delete recipe</span>
+              <p className="generate-deleteText">
+                Type the delete password to confirm removal of the selected recipe.
+              </p>
+              <label className="generate-field">
+                <span className="generate-label">Delete password</span>
+                <input
+                  className="generate-input"
+                  placeholder="Enter password"
+                  type="password"
+                  value={deletePassword}
+                  onChange={(event) => {
+                    setDeletePassword(event.target.value)
+                    setRecipeError('')
+                  }}
+                />
+              </label>
+              {!loadingRecipes && recipeError && <p className="generate-helperText is-error">{recipeError}</p>}
+              <button
+                type="button"
+                className="generate-deleteButton"
+                onClick={handleDelete}
+                disabled={!selectedRecipeName}
+              >
+                Delete selected recipe
+              </button>
+            </div>
+          )}
         </form>
       </section>
     </main>

@@ -5,6 +5,7 @@ import '../components/Recipes.css'
 
 const Recipes = () => {
   const [recipes, setRecipes] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
 
   const filteredRecipes = recipes.filter((r) =>
@@ -32,8 +33,10 @@ const Recipes = () => {
 
   useEffect(() => {
     const loadRecipes = async () => {
+      setIsLoading(true)
       const data = await getAllRecipes();
       setRecipes(data)
+      setIsLoading(false)
     }
       
     loadRecipes();
@@ -58,9 +61,13 @@ const Recipes = () => {
       </div>
 
       <div className="recipes-grid">
-        {recipes.length === 0 ? (
+        {isLoading ? (
           <p className="recipes-status">
             Recipes are loading...
+          </p>
+        ) : recipes.length === 0 ? (
+          <p className="recipes-status">
+            Empty recipes.
           </p>
         ) : filteredRecipes.length > 0 ? filteredRecipes.map((recipe, index) => (
           <div key={index} className="recipes-card">
