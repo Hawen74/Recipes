@@ -1,6 +1,6 @@
   import React, { useEffect, useMemo, useState } from 'react'
 import '../components/GenerateRecipe.css'
-import { getAllRecipes } from '../api/recipes'
+import { createRecipe, getAllRecipes, updateRecipe } from '../api/recipes'
 
 const GenerateRecipe = () => {
   const [mode, setMode] = useState('create')
@@ -16,23 +16,66 @@ const GenerateRecipe = () => {
     prepTime: ''
   })
 
-  useEffect(() => {
-    const loadRecipes = async () => {
-      setLoadingRecipes(true)
-      setRecipeError('')
+  const initialFormData = {
+    name: '',
+    ingredients: '',
+    steps: '',
+    prepTime: ''
+  }
 
-      try {
-        const data = await getAllRecipes()
-        setRecipes(Array.isArray(data) ? data : [])
-      } catch (error) {
-        setRecipeError('Could not load recipes from the database.')
-      } finally {
-        setLoadingRecipes(false)
-      }
+  const loadRecipes = async () => {
+    setLoadingRecipes(true)
+    setRecipeError('')
+    try {
+      const data = await getAllRecipes()
+      setRecipes(Array.isArray(data) ? data : [])
+    } catch (error) {
+      setRecipeError('Could not load recipes from the database.')
+    } finally {
+      setLoadingRecipes(false)
     }
+  }
 
-    loadRecipes()
+  // fetch recipes
+  useEffect(() => {
+    await loadRecipes()
   }, [])
+
+  // create recipes
+  const handleCreate = async () => {
+    try {
+      await createRecipe({
+        name: formData.name.trim(),
+        ingredients: formData.ingredients.split(',').map(s => s.trim()).filter(Boolean),
+        steps: formData.steps.split('\n').map(s => s.trim()).filter(Boolean),
+        prep_time: formData.prepTime ? Number(formData.prepTime) : null
+      })
+
+      await loadRecipes()
+      setFormData(initialFormData)
+    } catch (err) {
+      console.error(err)
+      setRecipeError('Could not create the recipe.')
+    }
+  }
+
+  // update recipes
+  const handleUpdate = async () => {
+    try {
+      await updateRecipe(selectedRecipeName, {
+        name: formData.name.trim(),
+        ingredients: formData.ingredients.split(',').map(s => s.trim()).filter(Boolean),
+        steps: formData.steps.split('\n').map(s => s.trim()).filter(Boolean),
+        prep_time: formData.prepTime ? Number(formData.prepTime) : null
+      })
+
+      await loadRecipes()
+      setFormData(initialFormData)
+    } catch (err) {
+      console.error(err)
+      setRecipeError('Could not update the recipe.')
+    }
+  }
 
   const filteredRecipes = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
@@ -72,12 +115,7 @@ const GenerateRecipe = () => {
     if (nextMode === 'create') {
       setSelectedRecipeName('')
       setSearchTerm('')
-      setFormData({
-        name: '',
-        ingredients: '',
-        steps: '',
-        prepTime: ''
-      })
+      setFormData(initialFormData)
     }
   }
 
@@ -96,6 +134,11 @@ const GenerateRecipe = () => {
 
   const handleSubmit = (event) => {
     event.preventDefault()
+    if (mode === 'create') {
+      handleCreate()
+    } else {
+      handleUpdate()
+    }
   }
 
   return (
