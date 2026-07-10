@@ -38,7 +38,7 @@ const GenerateRecipe = () => {
 
   // fetch recipes
   useEffect(() => {
-    await loadRecipes()
+    loadRecipes()
   }, [])
 
   // create recipes
