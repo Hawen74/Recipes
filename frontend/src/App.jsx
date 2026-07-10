@@ -29,18 +29,19 @@ const Main = () => {
 
   return (
     <>
-      {/* {location.pathname !== '/' && (
+      {location.pathname !== '/' && (
         <header style={headerStyle}>
           <Link to="/" style={buttonStyle}>Home</Link>
           <Link to="/recipes" style={buttonStyle}>Recipes</Link>
+          <Link to="/generate" style={buttonStyle}>Generate Recipe</Link>
         </header>
       )}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/recipes" element={<Recipes />} />
+        <Route path="/generate" element={<GenerateRecipe />} />
         <Route path="/recipes/:id/*" element={<EachRecipe />} />
-      </Routes> */}
-      <GenerateRecipe />
+      </Routes>
     </>
   )
 }

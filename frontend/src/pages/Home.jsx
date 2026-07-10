@@ -97,7 +97,7 @@ const Home = () => {
         </p>
         <div className="home-actions">
           <button className="primary-btn" onClick={() => navigate("/recipes")}>Explore Recipes</button>
-          <button className="secondary-btn">Get Inspired</button>
+          <button className="secondary-btn" onClick={() => navigate("/generate")}>Get Inspired</button>
         </div>
       </div>
 
