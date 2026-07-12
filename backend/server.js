@@ -45,6 +45,70 @@ app.get('/recipes/:name', async (req, res) => {
     }
 })
 
+// API POST 
+const Anthropic = require('@anthropic-ai/sdk')
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY})
+
+const extractJsonObject = (text) => {
+    const cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '')
+    const start = cleaned.indexOf('{')
+    const end = cleaned.lastIndexOf('}')
+    if (start === -1 || end === -1 || end < start) {
+        throw new Error('No JSON object found in model response')
+    }
+    return cleaned.slice(start, end + 1)
+}
+
+app.post('/recipes/generate', async (req, res) => {
+    try {
+        if (!process.env.ANTHROPIC_API_KEY) {
+            return res.status(500).json({ error: 'ANTHROPIC_API_KEY is not configured' })
+        }
+
+        const { prompt } = req.body
+
+        if (!prompt || !prompt.trim()) {
+            return res.status(400).json({ error: 'Prompt is required' })
+        }
+
+        const message = await anthropic.messages.create({
+            model: 'claude-sonnet-4-6',
+            max_tokens: 1024,
+            messages: [
+                { role: 'user', content: 
+                    `
+                    Generate one recipe based on this request:
+                    "${prompt}"
+                    Return ONLY valid JSON in this format:
+                    {
+                    "name": "" (string),
+                    "ingredients": "" (text[]),
+                    "steps": "" (text[]),
+                    "prepTime": ... (int)
+                    }
+                    ` 
+                }
+            ]
+        })
+
+        const rawText = message.content
+            .filter(block => block.type === 'text')
+            .map(block => block.text)
+            .join('')
+
+        const recipe = JSON.parse(extractJsonObject(rawText))
+
+        if (!recipe || typeof recipe !== 'object' || !recipe.name) {
+            return res.status(502).json({ error: 'Invalid recipe format returned by model' })
+        }
+
+        res.json(recipe)
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: 'Recipe generation failed' })
+    }
+})
+
 app.post('/recipes', async (req, res) => {
     try {
         const { name, ingredients, steps, prep_time } = req.body
