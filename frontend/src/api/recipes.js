@@ -22,6 +22,11 @@ export async function createRecipe(recipe) {
     return res.data
 }
 
+export async function generateRecipe(prompt) {
+  const res = await api.post('/recipes/generate', { prompt })
+  return res.data
+}
+
 // PUT /recipes/:name
 export async function updateRecipe(name, recipe) {
     const res = await api.put(`/recipes/${name}`, recipe)

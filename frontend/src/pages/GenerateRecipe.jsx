@@ -1,12 +1,15 @@
-  import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import '../components/GenerateRecipe.css'
-  import { createRecipe, deleteRecipe, getAllRecipes, updateRecipe } from '../api/recipes'
+import { createRecipe, deleteRecipe, generateRecipe, getAllRecipes, updateRecipe } from '../api/recipes'
 
   const DELETE_PASSWORD = 'norecipe'
 
 const GenerateRecipe = () => {
   const successMessageRef = useRef(null)
   const [mode, setMode] = useState('create')
+  const [isAiPanelOpen, setIsAiPanelOpen] = useState(false)
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [isGeneratingRecipe, setIsGeneratingRecipe] = useState(false)
   const [recipes, setRecipes] = useState([])
   const [loadingRecipes, setLoadingRecipes] = useState(false)
   const [recipeError, setRecipeError] = useState('')
@@ -41,7 +44,7 @@ const GenerateRecipe = () => {
     try {
       const data = await getAllRecipes()
       setRecipes(Array.isArray(data) ? data : [])
-    } catch (error) {
+    } catch {
       setRecipeError('Could not load recipes from the database.')
     } finally {
       setLoadingRecipes(false)
@@ -50,7 +53,11 @@ const GenerateRecipe = () => {
 
   // fetch recipes
   useEffect(() => {
-    loadRecipes()
+    const timeoutId = setTimeout(() => {
+      void loadRecipes()
+    }, 0)
+
+    return () => clearTimeout(timeoutId)
   }, [])
 
   // create recipes
@@ -130,28 +137,6 @@ const GenerateRecipe = () => {
     return recipes.filter((recipe) => recipe.name?.toLowerCase().includes(normalizedSearch))
   }, [recipes, searchTerm])
 
-  const selectedRecipe = useMemo(
-    () => recipes.find((recipe) => recipe.name === selectedRecipeName) || null,
-    [recipes, selectedRecipeName]
-  )
-
-  useEffect(() => {
-    if (!selectedRecipe) {
-      return
-    }
-
-    setFormData({
-      name: selectedRecipe.name || '',
-      ingredients: Array.isArray(selectedRecipe.ingredients)
-        ? selectedRecipe.ingredients.join(', ')
-        : selectedRecipe.ingredients || '',
-      steps: Array.isArray(selectedRecipe.steps)
-        ? selectedRecipe.steps.join('\n')
-        : selectedRecipe.steps || '',
-      prepTime: selectedRecipe.prep_time ?? ''
-    })
-  }, [selectedRecipe])
-
   const handleModeChange = (nextMode) => {
     setMode(nextMode)
     setSuccessMessage('')
@@ -175,11 +160,21 @@ const GenerateRecipe = () => {
     }))
   }
 
-  const handleRecipeSelect = (recipeName) => {
-    setSelectedRecipeName(recipeName)
+  const handleRecipeSelect = (recipe) => {
+    setSelectedRecipeName(recipe.name)
     setMode('update')
     setRecipeError('')
     setSuccessMessage('')
+    setFormData({
+      name: recipe.name || '',
+      ingredients: Array.isArray(recipe.ingredients)
+        ? recipe.ingredients.join(', ')
+        : recipe.ingredients || '',
+      steps: Array.isArray(recipe.steps)
+        ? recipe.steps.join('\n')
+        : recipe.steps || '',
+      prepTime: recipe.prep_time ?? ''
+    })
   }
 
   const handleSubmit = (event) => {
@@ -198,6 +193,46 @@ const GenerateRecipe = () => {
     }
 
     handleUpdate()
+  }
+
+  const handleGenerateWithAI = async () => {
+    const prompt = aiPrompt.trim()
+
+    setRecipeError('')
+    setSuccessMessage('')
+
+    if (!prompt) {
+      setRecipeError('Enter a prompt before generating a recipe.')
+      return
+    }
+
+    setIsGeneratingRecipe(true)
+
+    try {
+      const recipe = await generateRecipe(prompt)
+
+      setMode('create')
+      setSelectedRecipeName('')
+      setSearchTerm('')
+      setDeletePassword('')
+      setFormData({
+        name: recipe?.name || '',
+        ingredients: Array.isArray(recipe?.ingredients)
+          ? recipe.ingredients.join(', ')
+          : recipe?.ingredients || '',
+        steps: Array.isArray(recipe?.steps)
+          ? recipe.steps.join('\n')
+          : recipe?.steps || '',
+        prepTime: recipe?.prepTime ?? recipe?.prep_time ?? ''
+      })
+      setIsAiPanelOpen(false)
+      showSuccessMessage('Recipe generated. Review and edit, then click Create recipe to save.')
+    } catch (err) {
+      console.error(err)
+      setRecipeError('Could not generate a recipe. Please try another prompt.')
+    } finally {
+      setIsGeneratingRecipe(false)
+    }
   }
 
   return (
@@ -265,7 +300,7 @@ const GenerateRecipe = () => {
                               ? 'generate-resultButton is-selected'
                               : 'generate-resultButton'
                           }
-                          onClick={() => handleRecipeSelect(recipe.name)}
+                          onClick={() => handleRecipeSelect(recipe)}
                         >
                           <span>{recipe.name}</span>
                           <span>{recipe.prep_time ? `${recipe.prep_time} min` : 'No prep time'}</span>
@@ -363,6 +398,57 @@ const GenerateRecipe = () => {
           )}
         </form>
       </section>
+
+      {isAiPanelOpen && (
+        <section id="generate-ai-panel" className="generate-aiPanel" aria-live="polite">
+          <div className="generate-aiPanelHeader">
+            <p className="generate-aiPanelTitle">AI recipe generator</p>
+            <button
+              type="button"
+              className="generate-aiCloseButton"
+              onClick={() => setIsAiPanelOpen(false)}
+              aria-label="Close AI recipe generator"
+            >
+              Close
+            </button>
+          </div>
+
+          <label className="generate-field">
+            <span className="generate-label">Describe the recipe you want</span>
+            <textarea
+              className="generate-input generate-textarea"
+              placeholder="Example: High-protein vegetarian dinner under 30 minutes"
+              name="aiPrompt"
+              value={aiPrompt}
+              onChange={(event) => {
+                setAiPrompt(event.target.value)
+                setRecipeError('')
+              }}
+            />
+          </label>
+
+          <div className="generate-actions">
+            <button
+              type="button"
+              className="generate-submitButton"
+              onClick={handleGenerateWithAI}
+              disabled={isGeneratingRecipe}
+            >
+              {isGeneratingRecipe ? 'Generating...' : 'Generate with AI'}
+            </button>
+          </div>
+        </section>
+      )}
+
+      <button
+        type="button"
+        className="generate-aiFab"
+        onClick={() => setIsAiPanelOpen((current) => !current)}
+        aria-expanded={isAiPanelOpen}
+        aria-controls="generate-ai-panel"
+      >
+        {isAiPanelOpen ? 'Hide AI' : 'AI Create'}
+      </button>
     </main>
   )
 }

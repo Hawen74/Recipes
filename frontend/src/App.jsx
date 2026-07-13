@@ -1,4 +1,3 @@
-import React from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom"
 import Home from './pages/Home'
 import Recipes from './pages/Recipes'
@@ -33,13 +32,13 @@ const Main = () => {
         <header style={headerStyle}>
           <Link to="/" style={buttonStyle}>Home</Link>
           <Link to="/recipes" style={buttonStyle}>Recipes</Link>
-          <Link to="/generate" style={buttonStyle}>Generate Recipe</Link>
+          <Link to="/recipes/generate" style={buttonStyle}>Generate Recipe</Link>
         </header>
       )}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/recipes" element={<Recipes />} />
-        <Route path="/generate" element={<GenerateRecipe />} />
+        <Route path="/recipes/generate" element={<GenerateRecipe />} />
         <Route path="/recipes/:id/*" element={<EachRecipe />} />
       </Routes>
     </>
