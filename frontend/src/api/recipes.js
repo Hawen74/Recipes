@@ -16,6 +16,14 @@ export async function getRecipeById(name) {
     return res.data
 }
 
+// api/recipes.js
+export async function importRecipe(query) {
+  const res = await api.get('/recipes/import', {
+    params: { query }
+  })
+  return res.data
+}
+
 // POST /recipes
 export async function createRecipe(recipe) {
     const res = await api.post(`/recipes`, recipe)

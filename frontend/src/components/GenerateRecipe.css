@@ -59,6 +59,56 @@
   background: #f8fafc;
 }
 
+.generate-importCard {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid rgba(14, 116, 144, 0.2);
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(236, 254, 255, 0.8), rgba(255, 255, 255, 0.88));
+}
+
+.generate-importTitle {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #155e75;
+}
+
+.generate-importText {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #334155;
+}
+
+.generate-importRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.generate-importButton {
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #0e7490, #06b6d4);
+  color: #ffffff;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(14, 116, 144, 0.2);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.generate-importButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(14, 116, 144, 0.24);
+}
+
 .generate-toggleButton {
   border: 0;
   border-radius: 14px;
@@ -345,6 +395,14 @@
 
   .generate-toggle {
     grid-template-columns: 1fr;
+  }
+
+  .generate-importRow {
+    grid-template-columns: 1fr;
+  }
+
+  .generate-importButton {
+    width: 100%;
   }
 
   .generate-inlineField {

@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import '../components/GenerateRecipe.css'
-import { createRecipe, deleteRecipe, generateRecipe, getAllRecipes, updateRecipe } from '../api/recipes'
+import { createRecipe, deleteRecipe, generateRecipe, getAllRecipes, importRecipe, updateRecipe } from '../api/recipes'
 
-  const DELETE_PASSWORD = 'norecipe'
+const DELETE_PASSWORD = 'norecipe'
 
 const GenerateRecipe = () => {
   const successMessageRef = useRef(null)
@@ -17,6 +17,7 @@ const GenerateRecipe = () => {
   const [deletePassword, setDeletePassword] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedRecipeName, setSelectedRecipeName] = useState('')
+  const [importQuery, setImportQuery] = useState('')
   const [formData, setFormData] = useState({
     name: '',
     ingredients: '',
@@ -60,6 +61,16 @@ const GenerateRecipe = () => {
     return () => clearTimeout(timeoutId)
   }, [])
 
+  const filteredRecipes = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    if (!normalizedSearch) {
+      return recipes
+    }
+
+    return recipes.filter((recipe) => recipe.name?.toLowerCase().includes(normalizedSearch))
+  }, [recipes, searchTerm])
+
   // create recipes
   const handleCreate = async () => {
     try {
@@ -99,9 +110,6 @@ const GenerateRecipe = () => {
   }
 
   const handleDelete = async () => {
-    setRecipeError('')
-    setSuccessMessage('')
-
     if (!selectedRecipeName) {
       setRecipeError('Select a recipe before deleting it.')
       return
@@ -115,10 +123,6 @@ const GenerateRecipe = () => {
     try {
       await deleteRecipe(selectedRecipeName)
       await loadRecipes()
-      setMode('create')
-      setSelectedRecipeName('')
-      setSearchTerm('')
-      setDeletePassword('')
       setFormData(initialFormData)
       showSuccessMessage('Recipe deleted successfully.')
     } catch (err) {
@@ -127,21 +131,9 @@ const GenerateRecipe = () => {
     }
   }
 
-  const filteredRecipes = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase()
-
-    if (!normalizedSearch) {
-      return recipes
-    }
-
-    return recipes.filter((recipe) => recipe.name?.toLowerCase().includes(normalizedSearch))
-  }, [recipes, searchTerm])
-
+  // Switch Create or Update
   const handleModeChange = (nextMode) => {
     setMode(nextMode)
-    setSuccessMessage('')
-    setRecipeError('')
-    setDeletePassword('')
 
     if (nextMode === 'create') {
       setSelectedRecipeName('')
@@ -150,10 +142,9 @@ const GenerateRecipe = () => {
     }
   }
 
+  // add info to database
   const handleFieldChange = (event) => {
     const { name, value } = event.target
-    setSuccessMessage('')
-    setRecipeError('')
     setFormData((current) => ({
       ...current,
       [name]: value
@@ -163,8 +154,6 @@ const GenerateRecipe = () => {
   const handleRecipeSelect = (recipe) => {
     setSelectedRecipeName(recipe.name)
     setMode('update')
-    setRecipeError('')
-    setSuccessMessage('')
     setFormData({
       name: recipe.name || '',
       ingredients: Array.isArray(recipe.ingredients)
@@ -198,9 +187,6 @@ const GenerateRecipe = () => {
   const handleGenerateWithAI = async () => {
     const prompt = aiPrompt.trim()
 
-    setRecipeError('')
-    setSuccessMessage('')
-
     if (!prompt) {
       setRecipeError('Enter a prompt before generating a recipe.')
       return
@@ -214,7 +200,6 @@ const GenerateRecipe = () => {
       setMode('create')
       setSelectedRecipeName('')
       setSearchTerm('')
-      setDeletePassword('')
       setFormData({
         name: recipe?.name || '',
         ingredients: Array.isArray(recipe?.ingredients)
@@ -235,6 +220,31 @@ const GenerateRecipe = () => {
     }
   }
 
+  const handleImport = async () => {
+    const query = importQuery.trim()
+
+    if (!query) {
+      setRecipeError('Enter a recipe name or URL to import.')
+      return
+    }
+
+    try {
+      const recipe = await importRecipe(query)
+      setFormData({
+        name: recipe.name || '',
+        ingredients: Array.isArray(recipe.ingredients)
+          ? recipe.ingredients.join(', ')
+          : recipe.ingredients || '',
+        steps: Array.isArray(recipe.steps) ? recipe.steps.join('\n') : recipe.steps || '',
+        prepTime: recipe.prepTime ?? recipe.prep_time ?? ''
+      })
+      showSuccessMessage('Recipe imported. Review and edit, then click Create recipe to save.')
+    } catch (err) {
+      console.error(err)
+      setRecipeError('Could not import that recipe.')
+    }
+  }
+
   return (
     <main className="generate-page">
       <section className="generate-hero">
@@ -251,6 +261,26 @@ const GenerateRecipe = () => {
             {successMessage}
           </p>
         )}
+
+        <div className="generate-importCard">
+          <p className="generate-importTitle">Import recipe</p>
+          <p className="generate-importText">Name of a recipe.</p>
+          <div className="generate-importRow">
+            <input
+              className="generate-input"
+              placeholder="Chicken Curry"
+              type="text"
+              value={importQuery}
+              onChange={(event) => {
+                setImportQuery(event.target.value)
+                setRecipeError('')
+              }}
+            />
+            <button type="button" className="generate-importButton" onClick={handleImport}>
+              Import
+            </button>
+          </div>
+        </div>
 
         <div className="generate-toggle" role="tablist" aria-label="Recipe form mode">
           <button

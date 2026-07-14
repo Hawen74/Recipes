@@ -21,13 +21,59 @@ app.get('/recipes', async (req, res) => {
     }
 })
 
+app.get('/recipes/import', async (req, res) => {
+    try {
+        const { query } = req.query
+
+        if (!query || !query.trim()) {
+            return res.status(400).json({ error: 'Search query is required' })
+        }
+
+        const response = await fetch(
+            `https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(query.trim())}`
+        )
+        const data = await response.json()
+
+        if (!data.meals || data.meals.length === 0) {
+            return res.status(404).json({ error: 'No meals found for that search' })
+        }
+
+        const meal = data.meals[0]
+
+        const ingredients = []
+        for (let i = 1; i <= 20; i++) {
+            const ingredient = meal[`strIngredient${i}`]
+            const measure = meal[`strMeasure${i}`]
+            if (ingredient && ingredient.trim()) {
+                ingredients.push(`${measure?.trim() || ''} ${ingredient.trim()}`.trim())
+            }
+        }
+
+        const steps = meal.strInstructions
+            .split(/\r\n|\n/)
+            .map(s => s.trim())
+            .filter(Boolean)
+
+        res.json({
+            name: meal.strMeal,
+            ingredients,
+            steps,
+            prep_time: null
+        })
+
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: 'Database error' });
+    }
+})
+
 app.get('/recipes/:name', async (req, res) => {
     try {
         const name = req.params.name?.trim()
         if (!name) {
             return res.status(400).json({ error: 'Invalid recipe name' })
         }
-        
+
         const recipe = await pool.query(
             `SELECT * FROM recipes
             WHERE LOWER(name) = LOWER($1)`, [name]
